@@ -2134,16 +2134,14 @@ async function getAIAdvice(){
 
   const squadNames=mySquad.map(function(x){return x.name;}).join(', ')||'none';
   var promptLines=[
-    'You are a live IPL auction analyst. Be concise (2-3 sentences max).',
-    'Player on block: '+p.name+' ('+( ROLE_LABELS[p.role]||p.role)+', '+p.country+', Base Rs'+p.base+'Cr, '+p.set+')',
+    'You are a live IPL auction analyst. You MUST start your response with either BID or PASS in capitals, then explain why in 2 sentences.',
+    'Format: BID - [reason] OR PASS - [reason]',
+    'Player: '+p.name+' ('+( ROLE_LABELS[p.role]||p.role)+', '+p.country+', Base Rs'+p.base+'Cr, '+p.set+')',
     'Current bid: Rs'+d.currentBid+'Cr',
-    'My team: '+(team?team.name:state.myTeam),
-    'My purse: Rs'+myPurse+'Cr',
+    'Team: '+(team?team.name:state.myTeam)+' | Purse: Rs'+myPurse+'Cr | Squad: '+mySquad.length+' players',
+    'Squad roles - Bat:'+roles.bat+' Bowl:'+roles.bowl+' AR:'+roles.ar+' WK:'+roles.wk+' | Overseas: '+myOverseas+'/8',
     'Players left in pool: '+playersLeft,
-    'My squad ('+mySquad.length+'): '+squadNames,
-    'Roles - Bat:'+roles.bat+' Bowl:'+roles.bowl+' AR:'+roles.ar+' WK:'+roles.wk,
-    'Overseas: '+myOverseas+'/8',
-    'Give a clear BID or PASS recommendation with reason and max price if bidding.'
+    'Current squad: '+squadNames
   ];
   var prompt=promptLines.join('\n');
 
@@ -2152,9 +2150,13 @@ async function getAIAdvice(){
     const res=await callAnthropic(apiKey, prompt, 200);
     const data=res;
     const text=(data.content&&data.content[0]&&data.content[0].text)||'Unable to get advice.';
-    const isBid=text.toLowerCase().includes('bid');
+    // Detect BID vs PASS more accurately
+    const tl=text.toLowerCase().trim();
+    // AI is instructed to start with BID or PASS
+    const isBid = tl.startsWith('bid');
     const color=isBid?'var(--green)':'var(--accent)';
-    if(out) out.innerHTML='<span style="color:'+color+';font-weight:600;">'+(isBid?'BID':'PASS')+'</span> — '+text;
+    const label=isBid?'✅ BID':'⛔ PASS';
+    if(out) out.innerHTML='<span style="color:'+color+';font-weight:600;">'+label+'</span><br><span style="font-size:0.8rem;line-height:1.5;">'+text+'</span>';
   }catch(e){
     if(out) out.innerHTML='<span style="color:var(--red);">AI unavailable. Check connection.</span>';
   }
@@ -2184,7 +2186,7 @@ async function getAuctionSummaryAI(){
     var apiKey2=getAnthropicKey();
     var res=await callAnthropic(apiKey2, prompt, 400);
     var data=res;
-    var text=(data.content&&data.content[0]&&data.content[0].text)||'Unable to generate summary.';
+    var text=(data&&data.content&&data.content[0]&&data.content[0].text)||(data&&data.error&&data.error.message)||'Unable to generate summary.';
     el.innerHTML='<div class="card" style="border-color:rgba(0,207,255,0.2);background:rgba(0,207,255,0.03);margin-top:1rem;">'+
       '<div class="section-title" style="color:var(--accent2);border-color:rgba(0,207,255,0.2);">AI Auction Summary</div>'+
       '<p style="font-size:0.85rem;line-height:1.7;color:var(--white);">'+text+'</p>'+
