@@ -1,4 +1,4 @@
-exports.handler = async function(event) {
+exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' }, body: '' };
   }
@@ -14,7 +14,7 @@ exports.handler = async function(event) {
       body: JSON.stringify({ error: 'GEMINI_API_KEY not set in Netlify environment variables' })
     };
 
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -26,16 +26,14 @@ exports.handler = async function(event) {
     });
 
     const data = await response.json();
-
-    // Extract text from Gemini response format
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || 
-                 (data.error && data.error.message) || 
-                 'Unable to generate response.';
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      (data.error && data.error.message) ||
+      'Unable to generate response.';
 
     return {
       statusCode: 200,
       headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: text })
+      body: JSON.stringify({ text })
     };
   } catch (e) {
     return {
