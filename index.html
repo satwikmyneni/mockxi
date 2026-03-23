@@ -2150,7 +2150,7 @@ async function getAIAdvice(){
     const res=await callAnthropic(apiKey, prompt, 200);
     const data=res;
     console.log('AI response:', JSON.stringify(data));
-    const text=(data.content&&data.content[0]&&data.content[0].text)||(data.error&&data.error.message)||JSON.stringify(data)||'Unable to get advice.';
+    const text=(data.text)||(data.content&&data.content[0]&&data.content[0].text)||(data.error&&data.error.message)||JSON.stringify(data)||'Unable to get advice.';
     // Detect BID vs PASS more accurately
     const tl=text.toLowerCase().trim();
     // AI is instructed to start with BID or PASS
@@ -2187,7 +2187,7 @@ async function getAuctionSummaryAI(){
     var apiKey2=getAnthropicKey();
     var res=await callAnthropic(apiKey2, prompt, 400);
     var data=res;
-    var text=(data&&data.content&&data.content[0]&&data.content[0].text)||(data&&data.error&&data.error.message)||'Unable to generate summary.';
+    var text=(data&&data.text)||(data&&data.content&&data.content[0]&&data.content[0].text)||(data&&data.error&&data.error.message)||'Unable to generate summary.';
     el.innerHTML='<div class="card" style="border-color:rgba(0,207,255,0.2);background:rgba(0,207,255,0.03);margin-top:1rem;">'+
       '<div class="section-title" style="color:var(--accent2);border-color:rgba(0,207,255,0.2);">AI Auction Summary</div>'+
       '<p style="font-size:0.85rem;line-height:1.7;color:var(--white);">'+text+'</p>'+
